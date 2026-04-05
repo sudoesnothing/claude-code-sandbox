@@ -1,0 +1,39 @@
+name: claude-sandbox
+
+services:
+  claude-code:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: claude-sandbox:latest
+    container_name: claude-sandbox
+    restart: unless-stopped
+    user: claude
+    working_dir: /workspace
+    volumes:
+      - claude-sandbox-workspace:/workspace
+      - claude-sandbox-claude-config:/home/claude/.claude
+    networks:
+      - claude-sandbox-net
+    deploy:
+      resources:
+        limits:
+          memory: ${SANDBOX_MEMORY_LIMIT:-12g}
+          cpus: "${SANDBOX_CPU_LIMIT:-6}"
+    command: sleep infinity
+    healthcheck:
+      test: ["CMD", "echo", "healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  claude-sandbox-workspace:
+    name: claude-sandbox-workspace
+  claude-sandbox-claude-config:
+    name: claude-sandbox-claude-config
+
+networks:
+  claude-sandbox-net:
+    driver: bridge
