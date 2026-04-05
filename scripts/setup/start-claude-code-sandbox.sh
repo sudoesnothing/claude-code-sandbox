@@ -1,17 +1,22 @@
 #!/usr/bin/env bash
 # start-claude-code-sandbox.sh
-# Starts or attaches to the Claude Code sandbox container.
-# Run from WSL: bash /d/Development/Infrastructure/claude-code-sandbox/scripts/setup/start-claude-code-sandbox.sh
+# Starts the Claude Code sandbox container, building it first if needed.
+#
+# Usage (from the repo root):
+#   bash scripts/setup/start-claude-code-sandbox.sh
+#
+# Works on Linux, macOS, and Windows (Git Bash / WSL).
 
 set -e
 
-COMPOSE_FILE="/d/Development/Infrastructure/claude-code-sandbox/docker-compose.yml"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 CONTAINER_NAME="claude-sandbox"
 PROJECT_NAME="claude-sandbox"
 
 check_docker() {
     if ! docker info &>/dev/null; then
-        echo "ERROR: Docker is not running. Start Docker Desktop and try again."
+        echo "ERROR: Docker is not running. Please start Docker and try again."
         exit 1
     fi
 }
@@ -23,17 +28,15 @@ print_status() {
     echo "=============================================="
     echo "  Claude Code Sandbox"
     echo "=============================================="
-    echo "  Container : ${CONTAINER_NAME}"
-    echo "  Status    : ${status}"
+    echo "  Container : ${CONTAINER_NAME}  [${status}]"
     echo ""
-    echo "  Open in VS Code:"
-    echo "    F1 → Dev Containers: Attach to Running Container"
-    echo "    Select: ${CONTAINER_NAME}"
+    echo "  Attach in VS Code:"
+    echo "    F1 -> Dev Containers: Attach to Running Container"
     echo ""
     echo "  Open a shell:"
     echo "    docker exec -it ${CONTAINER_NAME} bash"
     echo ""
-    echo "  Run Claude Code directly:"
+    echo "  Run Claude Code:"
     echo "    docker exec -it ${CONTAINER_NAME} claude"
     echo "=============================================="
 }
@@ -47,18 +50,15 @@ case "${CONTAINER_STATUS}" in
         echo "[claude-sandbox] Already running."
         ;;
     "exited" | "created" | "paused")
-        echo "[claude-sandbox] Container stopped — starting..."
+        echo "[claude-sandbox] Starting stopped container..."
         docker start "${CONTAINER_NAME}"
-        echo "[claude-sandbox] Started."
         ;;
     "missing")
-        echo "[claude-sandbox] Container not found — building and starting..."
-        docker compose -f "${COMPOSE_FILE}" -p "${PROJECT_NAME}" up -d --build
-        echo "[claude-sandbox] Started."
+        echo "[claude-sandbox] Building and starting..."
+        docker compose -f "${REPO_ROOT}/docker-compose.yml" -p "${PROJECT_NAME}" up -d --build
         ;;
     *)
-        echo "[claude-sandbox] Container state: ${CONTAINER_STATUS} — attempting start..."
-        docker compose -f "${COMPOSE_FILE}" -p "${PROJECT_NAME}" up -d
+        docker compose -f "${REPO_ROOT}/docker-compose.yml" -p "${PROJECT_NAME}" up -d
         ;;
 esac
 

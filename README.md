@@ -1,99 +1,88 @@
 # Claude Code Sandbox
 
-A fully isolated, containerized development environment for [Claude Code](https://claude.ai/code).
+A minimal, isolated Docker environment for running [Claude Code](https://claude.ai/code).
 
-All development happens inside a Docker container (Ubuntu 24.04). Your workspace lives in a named Docker volume — not a bind mount — so data persists across container rebuilds and your host filesystem stays untouched.
+Claude Code runs entirely inside a container. Your workspace is stored in a named Docker volume — not a bind mount to your host — so it persists across container rebuilds and your host filesystem stays clean.
 
-## What's Inside
+## What's Included
 
-- **Ubuntu 24.04** base
-- **Node.js 22 LTS** + npm
+- **Ubuntu 24.04**
+- **Node.js 22 LTS**
 - **Claude Code CLI** (latest)
-- **Python 3** + pip + venv
-- **git**, curl, wget, jq, vim, rsync, sox
-- **VS Code Dev Containers** compatible
+- **git**, curl, sudo
+- **VS Code Dev Containers** support
+
+## Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) (Desktop or Engine)
+- [VS Code](https://code.visualstudio.com/) + [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) *(optional)*
 
 ## Quick Start
 
-### Prerequisites
+```bash
+# Clone the repo
+git clone https://github.com/sudoesnothing/claude-code-sandbox.git
+cd claude-code-sandbox
 
-- Docker Desktop with WSL2 backend
-- VS Code with the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
+# Start the container
+bash scripts/setup/start-claude-code-sandbox.sh
+```
 
-### 1. Start the sandbox (from WSL)
+Then authenticate Claude Code inside the container:
 
 ```bash
-bash /d/Development/Infrastructure/claude-code-sandbox/scripts/setup/start-claude-code-sandbox.sh
-```
-
-### 2. Open in VS Code
-
-```
-F1 → Dev Containers: Attach to Running Container → claude-sandbox
-```
-
-Or from this repo folder:
-```
-F1 → Dev Containers: Reopen in Container
-```
-
-### 3. Authenticate Claude Code
-
-Inside the container terminal:
-```bash
-claude
+docker exec -it claude-sandbox claude
 ```
 
 Follow the browser OAuth flow. Credentials are stored in the `claude-sandbox-claude-config` volume and persist across restarts.
 
+## VS Code
+
+```
+F1 -> Dev Containers: Reopen in Container
+```
+
+or attach to the running container:
+
+```
+F1 -> Dev Containers: Attach to Running Container -> claude-sandbox
+```
+
 ## Configuration
 
-Copy `.env.example` to `.env` to customize resource limits:
+Copy `.env.example` to `.env` to adjust resource limits:
 
 ```bash
 cp .env.example .env
 ```
 
-```bash
-# .env
-SANDBOX_MEMORY_LIMIT=12g
-SANDBOX_CPU_LIMIT=6
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SANDBOX_MEMORY_LIMIT` | `8g` | Container memory — adjust to your machine |
+| `SANDBOX_CPU_LIMIT` | `4` | vCPU count — adjust to your machine |
 
-## Workspace Structure (WAT Framework)
+## Workspace
 
-```
-/workspace/
-├── projects/       # Active projects — each is its own git repo
-├── infrastructure/ # IaC configs (n8n, containerlab, claude)
-├── web/            # Web projects
-├── tools/          # Utility scripts (Python, PowerShell, bash)
-├── workflows/      # Markdown SOPs — the WAT "Workflows" layer
-├── prompts/        # Claude prompt library
-├── .tmp/           # Temp files (gitignored)
-├── .env            # API keys (gitignored, never commit)
-└── CLAUDE.md       # WAT framework instructions for Claude Code
-```
+The container starts with a minimal `/workspace/projects/` directory. Organize it however you like.
+
+An optional WAT framework (Workflows / Agents / Tools) layout is documented in [`CLAUDE.md`](CLAUDE.md) and pre-scaffolded in [`scripts/setup/docker-entrypoint.sh`](scripts/setup/docker-entrypoint.sh) if you want a structured starting point.
 
 ## Volumes
 
 | Volume | Purpose |
 |--------|---------|
-| `claude-sandbox-workspace` | All workspace data |
-| `claude-sandbox-claude-config` | Claude Code credentials and config |
-
-## Using as a Template
-
-1. Fork or clone this repo
-2. Copy `.env.example` to `.env`
-3. Run `bash scripts/setup/start-claude-code-sandbox.sh`
-4. Authenticate Claude Code inside the container
-5. Add your own `CLAUDE.md` to `/workspace/`
+| `claude-sandbox-workspace` | Workspace data |
+| `claude-sandbox-claude-config` | Claude credentials and config |
 
 ## Security
 
-- Runs as non-root user `claude` (UID 1001)
-- All Linux capabilities dropped
-- `no-new-privileges` enforced
-- No ports published to host
-- Credentials stored in named volume, never in the image or repo
+- Non-root user (`claude`, UID 1001) with passwordless sudo
+- No ports published to the host
+- Credentials stored in a named volume, never in the image
+
+## Credits
+
+The `CLAUDE.md` in this repo is a simplified template based on the **WAT (Workflows / Agents / Tools)** framework. Credit to [Nate Herk](https://www.youtube.com/@nateherk) for the inspiration — his work in agentic AI and automation is worth checking out if you want to go deeper with Claude Code and practical AI workflows.
+
+The full, ready-to-use WAT `CLAUDE.md` file is available in the Classroom of his free community:
+[AI Automation Society](https://skool.com/ai-automation-society/about)
