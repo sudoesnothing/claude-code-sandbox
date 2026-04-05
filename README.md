@@ -78,7 +78,9 @@ An optional WAT framework (Workflows / Agents / Tools) layout is documented in [
 
 - Non-root user (`claude`, UID 1001) with passwordless sudo
 - No ports published to the host
-- Credentials stored in a named volume, never in the image
+- Credentials stored in a named Docker volume — never in the image or repo
+
+This project is built for local, single-user use. For shared or production environments, credentials should be injected at runtime via Docker secrets, HashiCorp Vault, or a similar secrets manager. See [`docs/secrets-management.md`](docs/secrets-management.md) for drop-in examples of each.
 
 ## Credits
 
