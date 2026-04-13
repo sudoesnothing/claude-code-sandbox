@@ -1,4 +1,8 @@
-# Claude Code Sandbox
+| ⚠️ **DEPRECATED**: This repository is no longer maintained ⚠️|
+|-------------------------------------------------------------|
+|👍--------->Please use the new and improved [enclaude](https://github.com/sudoesnothing/enclaude) instead<--------👍|
+
+## Claude Code Sandbox
 
 A minimal, isolated Docker environment for running [Claude Code](https://claude.ai/code).
 
